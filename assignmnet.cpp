@@ -190,10 +190,10 @@ public:
             int incrNE = 2*dx;
             x = p1.x;
             y = p1.y;
-            cout << y <<" "<<p2.y <<" "<<p1.y << endl;
+            //cout << y <<" "<<p2.y <<" "<<p1.y << endl;
             while(y > p2.y){
                 //cout  <<d <<" "<< y << endl;
-                cout << x << " "<<y<<endl;
+                //cout << x << " "<<y<<endl;
                 if(d > 0){
                     d += incrE;
                     x++;
@@ -208,11 +208,13 @@ public:
             }
         }
     }
-    void intensifyColor(double x, double y, double filter, bitmap_image &image){
+    void intensifyColor(double x, double y, double distance, bitmap_image &image){
         Color newColor;
-        newColor.r = 1.0 * color.r * filter;
-        newColor.g = 1.0 * color.g * filter;
-        newColor.b = 1.0 * color.b * filter;
+
+        double a = 1 - pow(distance /2, 2);
+        newColor.r = 1.0 * color.r * a;
+        newColor.g = 1.0 * color.g * a;
+        newColor.b = 1.0 * color.b * a;
 
         image.set_pixel(x,y, newColor.r, newColor.g, newColor.b);
     }
@@ -222,14 +224,13 @@ public:
         int dy = p2.y-p1.y;
         int x = p1.x, y = p1.y;
 
-        int two_v_dx = 0;
-        double inv_denominator = 1.0 / (2.0 * sqrt(dx*dx + dy*dy));
-        double two_dx_inv_denominator = 2.0 * dx * inv_denominator;
-        intensifyColor(x,img_height - y,0, image);
-        if(y != img_height) intensifyColor(x,img_height - (y+1),two_dx_inv_denominator, image);
-        if(y != 0) intensifyColor(x,img_height - (y-1),two_dx_inv_denominator, image);
-        
         if(m >=0 && m <= 1){
+            int two_v_dx = 0;
+            double inv_denominator = 1.0 / (2.0 * sqrt(dx*dx + dy*dy));
+            double two_dx_inv_denominator = 2.0 * dx * inv_denominator;
+            intensifyColor(x,img_height - y,0, image);
+            if(y != img_height) intensifyColor(x,img_height - (y+1),two_dx_inv_denominator, image);
+            if(y != 0) intensifyColor(x,img_height - (y-1),two_dx_inv_denominator, image);
             int d = 2*dy - dx;
             int incrE = 2*dy;
             int incrNE = 2 * (dy-dx);
@@ -247,9 +248,46 @@ public:
                     y++;
                 }
                 //cout << color.r <<" " << color.g <<" "<<color.b << endl;
-                intensifyColor(x,y, two_v_dx*inv_denominator, image);
-                intensifyColor(x,y+1, two_dx_inv_denominator - two_v_dx*inv_denominator, image);
-                intensifyColor(x,y-1, two_dx_inv_denominator + two_v_dx*inv_denominator, image);
+                intensifyColor(x,img_height - y, two_v_dx*inv_denominator, image);
+                intensifyColor(x,img_height - (y+1), two_dx_inv_denominator - two_v_dx*inv_denominator, image);
+                intensifyColor(x,img_height - (y-1), two_dx_inv_denominator + two_v_dx*inv_denominator, image);
+            }
+        }
+
+        else if(m > 1){
+
+            int two_v_dx = 0;
+            double inv_denominator = 1.0 / (2.0 * sqrt(dx*dx + dy*dy));
+            double two_dx_inv_denominator = 2.0 * dy * inv_denominator;
+            intensifyColor(x,img_height - y,0, image);
+            if(y != img_height) intensifyColor(x,img_height - (y+1),two_dx_inv_denominator, image);
+            if(y != 0) intensifyColor(x,img_height - (y-1),two_dx_inv_denominator, image);
+
+            if(p1.y > p2.y){
+                swap(p1,p2);
+            }
+            int d = 2*dy - dx;
+            int incrE = -2*dx;
+            int incrNE = 2 * (dy-dx);
+            x = p1.x;
+            y = p1.y;
+            //cout << y <<" "<<p2.y <<" "<<p1.y << endl;
+            while(y < p2.y){
+                //cout << x << " "<<y<<endl;
+                if(d > 0){
+                    two_v_dx = d + dy;
+                    d += incrE;
+                    y++;
+                }
+                else{
+                    two_v_dx = d - dy;
+                    d += incrNE;
+                    x++; 
+                    y++;
+                }
+                intensifyColor(x,img_height - y, two_v_dx*inv_denominator, image);
+                intensifyColor(x,img_height - (y+1), two_dx_inv_denominator - two_v_dx*inv_denominator, image);
+                intensifyColor(x,img_height - (y-1), two_dx_inv_denominator + two_v_dx*inv_denominator, image);
             }
         }
         
