@@ -253,7 +253,39 @@ public:
                 intensifyColor(x,img_height - (y-1), two_dx_inv_denominator + two_v_dx*inv_denominator, image);
             }
         }
+        else if(m < 0 && m >= -1){
+            int two_v_dx = 0;
+            double inv_denominator = 1.0 / (2.0 * sqrt(dx*dx + dy*dy));
+            double two_dx_inv_denominator = 2.0 * dx * inv_denominator;
+            intensifyColor(x,img_height - y,0, image);
+            if(y != img_height) intensifyColor(x,img_height - (y+1),two_dx_inv_denominator, image);
+            if(y != 0) intensifyColor(x,img_height - (y-1),two_dx_inv_denominator, image);
 
+            int d = 2*dy + dx;
+            int incrE = 2*(dy+dx);
+            int incrNE = 2*dy;
+
+            while(x < p2.x){
+                //cout  <<d <<" "<< y << endl;
+                //cout << x << " "<<y<<endl;
+                if(d <= 0){
+                    two_v_dx = d + dx;
+                    d += incrE;
+                    x++;
+                    y--;
+                }
+                else{
+                    two_v_dx = d - dx;
+                    d += incrNE;
+                    x++; 
+                }
+                //cout << color.r <<" " << color.g <<" "<<color.b << endl;
+                intensifyColor(x,img_height - y, two_v_dx*inv_denominator, image);
+                intensifyColor(x,img_height - (y+1), two_dx_inv_denominator - two_v_dx*inv_denominator, image);
+                intensifyColor(x,img_height - (y-1), two_dx_inv_denominator + two_v_dx*inv_denominator, image);
+            
+            }
+        }
         else if(m > 1){
 
             int two_v_dx = 0;
@@ -288,6 +320,45 @@ public:
                 intensifyColor(x,img_height - y, two_v_dx*inv_denominator, image);
                 intensifyColor(x,img_height - (y+1), two_dx_inv_denominator - two_v_dx*inv_denominator, image);
                 intensifyColor(x,img_height - (y-1), two_dx_inv_denominator + two_v_dx*inv_denominator, image);
+            }
+        }
+
+        else{
+            int two_v_dx = 0;
+            double inv_denominator = 1.0 / (2.0 * sqrt(dx*dx + dy*dy));
+            double two_dx_inv_denominator = 2.0 * dy * inv_denominator;
+            intensifyColor(x,img_height - y,0, image);
+            if(y != img_height) intensifyColor(x,img_height - (y+1),two_dx_inv_denominator, image);
+            if(y != 0) intensifyColor(x,img_height - (y-1),two_dx_inv_denominator, image);
+
+            if(p1.y < p2.y){
+                swap(p1,p2);
+            }
+            int d = 2*dy + dx;
+            int incrE = 2*(dy+dx);
+            int incrNE = 2*dx;
+            x = p1.x;
+            y = p1.y;
+            //cout << y <<" "<<p2.y <<" "<<p1.y << endl;
+            while(y > p2.y){
+                //cout  <<d <<" "<< y << endl;
+                //cout << x << " "<<y<<endl;
+                if(d > 0){
+                    two_v_dx = d + dy;
+                    d += incrE;
+                    x++;
+                    y--;
+                }
+                else{
+                    two_v_dx = d - dy;
+                    d += incrNE;
+                    y--; 
+                }
+                //cout << color.r <<" " << color.g <<" "<<color.b << endl;
+                intensifyColor(x,img_height - y, two_v_dx*inv_denominator, image);
+                intensifyColor(x,img_height - (y+1), two_dx_inv_denominator - two_v_dx*inv_denominator, image);
+                intensifyColor(x,img_height - (y-1), two_dx_inv_denominator + two_v_dx*inv_denominator, image);
+            
             }
         }
         
