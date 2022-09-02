@@ -7,20 +7,13 @@ using std::filesystem::current_path;
 
 class Color{
 public:
-    int r, g, b;
+    double r, g, b;
 
-    Color(int r=0, int g=0, int b=0){
+    Color(double r=0, double g=0, double b=0){
         this->r = r;
         this->g = g;
         this->b = b;
     }
-
-    void setVal(int r, int g, int b){
-        this->r = r;
-        this->g = g;
-        this->b = b;
-    }
-
     void operator = (const Color &color){
         this->r = color.r;
         this->g = color.g;
@@ -215,6 +208,52 @@ public:
             }
         }
     }
+    void intensifyColor(double x, double y, double filter, bitmap_image &image){
+        Color newColor;
+        newColor.r = 1.0 * color.r * filter;
+        newColor.g = 1.0 * color.g * filter;
+        newColor.b = 1.0 * color.b * filter;
+
+        image.set_pixel(x,y, newColor.r, newColor.g, newColor.b);
+    }
+    void draw_weightedSampling(bitmap_image &image){
+        double m = (p2.y-p1.y) / (p2.x-p1.x);
+        int dx = p2.x-p1.x;
+        int dy = p2.y-p1.y;
+        int x = p1.x, y = p1.y;
+
+        int two_v_dx = 0;
+        double inv_denominator = 1.0 / (2.0 * sqrt(dx*dx + dy*dy));
+        double two_dx_inv_denominator = 2.0 * dx * inv_denominator;
+        intensifyColor(x,img_height - y,0, image);
+        if(y != img_height) intensifyColor(x,img_height - (y+1),two_dx_inv_denominator, image);
+        if(y != 0) intensifyColor(x,img_height - (y-1),two_dx_inv_denominator, image);
+        
+        if(m >=0 && m <= 1){
+            int d = 2*dy - dx;
+            int incrE = 2*dy;
+            int incrNE = 2 * (dy-dx);
+            while(x <= p2.x){
+                //cout << x << " "<<y<<endl;
+                if(d <= 0){
+                    two_v_dx = d + dx;
+                    d += incrE;
+                    x++;
+                }
+                else{
+                    two_v_dx = d - dx;
+                    d += incrNE;
+                    x++; 
+                    y++;
+                }
+                //cout << color.r <<" " << color.g <<" "<<color.b << endl;
+                intensifyColor(x,y, two_v_dx*inv_denominator, image);
+                intensifyColor(x,y+1, two_dx_inv_denominator - two_v_dx*inv_denominator, image);
+                intensifyColor(x,y-1, two_dx_inv_denominator + two_v_dx*inv_denominator, image);
+            }
+        }
+        
+    }
 };
 
 int totalLines;
@@ -222,19 +261,24 @@ vector<Line> lines;
 
 void imageGeneration(){
     bitmap_image image(img_width, img_height);
+    bitmap_image weighted_image(img_width, img_height);
     for(int i = 0; i < img_width; i++){
         for(int j = 0; j < img_height; j++){
-            image.set_pixel(i,j, 255, 255 ,255);
+            image.set_pixel(i,j, 0, 0 ,0);
+            weighted_image.set_pixel(i,j, 0, 0, 0);
         }
     }
 
     for(int i = 0; i < totalLines; i++){
         lines[i].draw(image);
+        lines[i].draw_weightedSampling(weighted_image);
     }
-    string out_dir(current_path());
-    out_dir += "/1_R.bmp";
+    string cur_dir(current_path());
+    string out_dir = cur_dir + "/1_R.bmp";
+    string weighted_out_dir = cur_dir + "/3_RWA.bmp";
     cout << out_dir  << endl;
     image.save_image(out_dir);
+    weighted_image.save_image(weighted_out_dir);
 }
 
 
